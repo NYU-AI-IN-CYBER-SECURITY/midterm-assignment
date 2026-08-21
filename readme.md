@@ -24,13 +24,13 @@ We are using **Liquid LFM2.5** for this project due to its unique architectural 
 * **Compact Hybrid Architecture:** LFM (Liquid Foundation Model) blends short convolution structures with global attention layers. It fits entirely within **1GB to 2.5GB of RAM**, making it extremely lightweight compared to traditional transformer-only architectures.
 * **On-Device CPU Performance:** It runs exceptionally fast on modest CPU hardware, allowing you to run, test, and deploy the fine-tuned model locally on any standard computer without needing high-end hardware.
 * **Privacy & Local Auditing:** Streaming packet data can be processed entirely locally on-device without exposing sensitive network logs to external cloud APIs or third-party servers.
-* **Open Accessibility & Academic Heritage:** The model features open weights and is fully compatible with lightweight training platforms. Liquid AI was co-founded by **Daniela Rus**, Director of MIT’s Computer Science and Artificial Intelligence Laboratory (CSAIL).
+* **Open Accessibility:** The model features open weights and is fully compatible with lightweight training platforms. Liquid AI was co-founded by **Daniela Rus**, Director of MIT’s Computer Science and Artificial Intelligence Laboratory (CSAIL).
 
 ---
 
 ### 3. Environment Setup & Unsloth Studio Installation
 
-We will use **Unsloth Studio**, an open-source, no-code/low-code web UI that simplifies downloading, running, fine-tuning, and exporting open-source models. This allows us to focus on the value of data representation and prompt structure. 
+We will use **Unsloth Studio**, an open-source, no-code/low-code web UI that simplifies downloading, running, fine-tuning, and exporting open-source models. This allows us to focus on the value of data representation and prompt structure, and how LLMs fit into a Cyber Security workflow. 
 
 *(If you prefer command-line/CLI development, you can review [Liquid AI's TRL and Unsloth Integration examples](https://docs.liquid.ai/lfm/fine-tuning/unsloth).)*
 
@@ -39,6 +39,8 @@ Download the native desktop installer matching your operating system:
 *   [Download for macOS](https://unsloth.ai/download/mac)
 *   [Download for Windows](https://unsloth.ai/download/windows)
 *   [Download for Linux](https://unsloth.ai/download/linux)
+
+Diskspace consumption can get quite high depending on the extent of your model training, be prepared for 80GB-200GB diskspace consumption depending on use. 
 
 #### B. Hardware Compatibility
 *   **Nvidia Dedicated GPUs:** Works fully out of the box with complete CUDA acceleration (most performant).
@@ -53,7 +55,7 @@ If you experience hardware detection, compilation, or driver issues on your devi
 
 ---
 
-#### ⚠️ Critical Fix: Intel GPU on Windows Triton Error
+#### Critical Fix: Intel GPU on Windows Triton Error
 If you run Unsloth Desktop on **Windows with an Intel GPU** and encounter the following error during launch or training:
 > `Failed to import ML libraries: cannot import name 'intel' from 'triton._C.libtriton'`
 
@@ -92,19 +94,23 @@ Before beginning training, make sure to switch your optimizer:
 #### D. Cloud Fallback: Google Colab
 If your local hardware is not a viable option, a pre-configured **Jupyter Notebook** is provided in this repository under the name `Unsloth_Studio_Colab.ipynb`.
 *   Open the notebook in [Google Colab](https://colab.research.google.com/).
-*   Use Colab's free cloud T4 GPU compute resources to install and run the Unsloth Studio interface remotely. Note that free Colab tiers face strict file persistence limitations and session timeouts.
-*   *Note: If you run into persistent storage boundaries or experience compute limit timeouts, it is highly recommended to opt into the paid Colab plan to access more advanced hardware (which drastically reduces compute training time) and secure persistent storage.*
+*   Use Colab's free cloud T4 GPU compute resources to install and run the Unsloth Studio interface remotely. Note that free Colab tiers face strict file persistence limitations, usage limits, and session timeouts.
+*   *Note: If you run into persistent storage boundaries or experience compute limit timeouts, it is highly recommended to opt into the paid Colab plan to access more advanced hardware (which drastically reduces compute training time) and secure more persistent storage.*
 
 ---
 
 ### 4. Task 1: Prompt Design & Dataset Structure (`prompter.py`)
 
-To fine-tune your model, network logs must be transformed into structured prompt templates. You are allowed to use the **UNSW-NB15 dataset** (such as the balanced 30,000-row CSV) or any other network traffic source. Make sure you keep the format of the data input consistent!
+To fine-tune your model, network logs must be transformed into structured prompt templates.
+
+As a starting point, use the UNSW-NB15 dataset, along with other network traffic sources that you like. Keep the input data format consistent across your entire dataset!
+
+Think carefully about how much training data you need. Is 50 data points enough? What about 1,000, 10,000, 100,000, 200,000, or more? Consider how the size and diversity of your dataset may affect the quality of your fine-tuned model.
 
 #### Custom Formatting in `prompter.py`
-You have been provided with a starter Python script named `prompter.py`. This is where you specify how you plan to prompt your model.
+You have been provided with a template Python script named `prompter.py`. This is where you specify how you plan to prompt your model. Only modify the sections you are given to edit. No more. You may not install any new libraries, dependencies, etc., within the prompter.py file. 
 
-When your model is evaluated, the grading system will present raw network packet details as a dictionary to your script, which will format it into a set string based on your design. Keep in mind that Liquid LFM2.5 uses a **ChatML-like template format** with `system`, `user`, and `assistant` blocks.
+When your model is evaluated, the grading system will present raw network packet details as a dictionary to your prompter.py, which will format it into a set string based on your design and return the prompt for us to feed as a model input to your model. Keep in mind that Liquid LFM2.5 uses a **ChatML-like template format** with `system`, `user`, and `assistant` blocks.
 
 To understand the template details, see [Liquid AI Chat Template Documentation](https://docs.liquid.ai/lfm/key-concepts/chat-template).
 
@@ -112,7 +118,7 @@ Your task in `prompter.py` is to choose what features go into the prompt and how
 1. **Which features to include:** Which columns carry high-quality signals? (e.g., `sttl`, `dpkts`, `sload`, `dur`, etc.). Including all 42 features may clutter the context window and slow down training/inference, while too few may cap model performance.
 2. **How to represent them:** Should they be formatted as key-value lines, bullet points, structured JSON, or conversational prose?
 
-#### 🎯 Crucial: Strict JSON Output Format
+#### Crucial: Strict JSON Output Format
 Your model must be trained to output a **valid JSON object** containing exactly the `label` and `type` keys. If your model deviates from this structure or outputs arbitrary text, it will fail the grading checks.
 
 Your prompt must instruct the model to return outputs in the following exact schema:
@@ -135,7 +141,7 @@ Refer to the code comments inside `prompter.py` for more details.
 
 ### 5. Written Report Requirements
 
-You must include an analytical report as a PDF (`<NYUID>_report.pdf`) or a Markdown file (`<NYUID>_report.md`). Your report must be **between 600 and 1,200 words** and must comprehensively address the following engineering challenges:
+You must include an analytical report as a PDF (`<NYUID>_report.pdf`) or a Markdown file (`<NYUID>_report.md`). Your report must be **between 600 and 2,000 words** and must comprehensively address the following engineering challenges:
 
 #### 1. Dataset Balancing Strategy
 Should your training dataset be **balanced (50/50 ratio)** or **left unbalanced (matching real-world traffic)**?
@@ -170,7 +176,7 @@ You get to choose between the [LFM2.5-350M model](https://docs.liquid.ai/lfm/mod
    * **QLoRA (Quantized Low-Rank Adaptation)**
    * **Full-Model Weights Training**
    * *Note: Since this 350M parameter model is extremely lightweight, quantization (such as 4-bit loading) is not required for memory conservation during training, allowing you to train with higher fidelity weights. Most students select **full-model weights training**.*
-4. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export.
+4. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export. Not need to apply quantization here FP16 is okay (the model is quite small). 
 
 ---
 
