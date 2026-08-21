@@ -191,6 +191,29 @@ You must upload the following three deliverables to the course submission portal
 *Note: Replace `<NYUID>` with your actual NYU NetID in the filenames.*
 
 #### Grading Criteria
-There is no hard numeric rubric for performance. You are graded on your **demonstrated effort** and the **correctness/depth of thought** in your analytical report answers.
+* For the report, there is no hard numeric rubric for performance. You are graded on your **demonstrated effort** and the **correctness/depth of thought** in your analytical report answers. It is Pass/Fail.
+* For the performance of your model, you will receive a score similar to the previous assignments.
+  
+#### Important! How Model Benchmarking Works
+
+* Once you upload your model to the portal, it will be placed in a queue for benchmarking. Benchmarking is performed on **Torch, NYU Tandon's supercomputer**, and is **not instantaneous**.
+* Benchmarking runs on a fixed schedule: **Monday, Wednesday, and Friday**. Uploads are accepted until **8:00 PM ET** on the day of benchmarking. Submissions received by the deadline will be placed in the queue.
+* You will receive your benchmarking score **the following day**. You can then choose to:
+
+  * **Keep your score** by uploading the provided token to Gradescope, or
+  * **Submit a revised version** for another benchmarking attempt.
+* You are permitted a maximum of **5 benchmarking attempts**. Each attempt will generate a unique use token.
+* You can earn **extra credit for minimizing the number of submissions**. You start with **10 points of extra credit**, and each submission after the first reduces the available extra credit by **4 points**.
+* **Every submission counts**, regardless of whether you ultimately use that submission's score for your final grade. We strongly recommend testing your model locally and making sure it is performing as expected before submitting it for benchmarking. You cannot mix and match parts of a submission. Each submission must include all files (including the report). 
+
+| Number of Submissions |  Extra Credit |
+| --------------------: | ------------: |
+|                     1 | **10 points** |
+|                     2 |  **6 points** |
+|                     3 |  **2 points** |
+|                    4+ |  **0 points** |
+
+**Important:** If you use all 5 submissions, you forfeit the full **12 points of extra credit available on the midterm project**.
+
 
 Good luck! Let's see how well an LLM can defend the network.
