@@ -56,7 +56,7 @@ Remember the main assignment! Make sure to open `prompter.py`. It is the only fi
 It must be placed in the folder you are running your. 
 You build the message the model sees out of three pieces:
 
-As a reward for reading all the readme files, here is are examples/hints:
+Here are the details from prompter.py rewritten slightly differently, just in case this makes it click!
 
 Remember, assume the flow you were handed looks like this:
 
