@@ -41,6 +41,7 @@ Download the native desktop installer matching your operating system:
 *   [Download for Linux](https://unsloth.ai/download/linux)
 
 Diskspace consumption can get quite high depending on the extent of your model training, be prepared for 80GB-200GB diskspace consumption depending on use. 
+Once you install it and open the application, make sure to install any updates!
 
 #### B. Hardware Compatibility
 *   **Nvidia Dedicated GPUs:** Works fully out of the box with complete CUDA acceleration (most performant).
