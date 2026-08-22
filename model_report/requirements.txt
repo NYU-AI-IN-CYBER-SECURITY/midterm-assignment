@@ -1,0 +1,20 @@
+# AI for Cyber Security midterm model performance tool -- Python dependencies.
+#
+#   python install.py                 <- recommended: venv + GPU-aware install
+#   pip install -r requirements.txt   <- plain CPU install, if you prefer
+#
+# llama-cpp-python publishes no wheels on PyPI, so a bare "pip install" there
+# compiles llama.cpp from source (several minutes, needs a C++ toolchain).
+# The line below points pip at the project's prebuilt CPU wheels instead.
+# install.py swaps this for the CUDA or Metal index when it finds a GPU.
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+--prefer-binary
+
+llama-cpp-python>=0.3.0
+
+# Writes the results.xlsx report (Summary / Results / Prompts tabs).
+# Without it the run still works -- report.py falls back to plain CSV files.
+openpyxl>=3.1
+
+# Everything else the assignment uses (csv, json, argparse, dataclasses,
+# collections, pathlib) is in the Python standard library. Python 3.10+.
