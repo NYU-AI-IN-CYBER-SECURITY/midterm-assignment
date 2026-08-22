@@ -38,6 +38,7 @@ Before you start Task 1, read [Part I: Background](#part-i-background) and compl
   - [1.2 Custom Formatting in prompter.py](#12-custom-formatting-in-prompterpy)
   - [1.3 Crucial: Strict JSON Output Format](#13-crucial-strict-json-output-format)
 - [Task 2: Fine-Tune the Model in Unsloth Studio](#task-2-fine-tune-the-model-in-unsloth-studio)
+  - [2.1 Test Your Exported Model Locally (model_report)](#21-test-your-exported-model-locally-model_report)
 - [Task 3: Write Your Analytical Report](#task-3-write-your-analytical-report)
   - [3.1 Dataset Balancing Strategy](#31-dataset-balancing-strategy)
   - [3.2 The "All Normal" Majority Blindness](#32-the-all-normal-majority-blindness)
@@ -203,6 +204,25 @@ Once you have formatted your training data and verified its alignment with your 
    * *Note: Since this 350M parameter model is extremely lightweight, quantization (such as 4-bit loading) is not required for memory conservation during training, allowing you to train with higher fidelity (or even full) weights. 
 4. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export. Not need to apply quantization here FP16 is okay (the model is quite small).
 
+### 2.1 Test Your Exported Model Locally (`model_report`)
+
+> **Before you submit anything, look at the `model_report` folder in this repository.**
+
+It contains files that let you load your exported `.gguf` and evaluate it against a labeled dataset **that you provide yourself**. Use it to catch the failures that most often waste a benchmarking attempt:
+
+* Does the model actually load and respond to prompts produced by your `prompter.py`?
+* Is **every** response a valid JSON object with exactly the `label` and `type` keys, and nothing else (no preamble, no trailing commentary, no markdown fences)?
+* Are the values restricted to the allowed sets listed in [1.3](#13-crucial-strict-json-output-format), or is the model inventing categories?
+* What do your per-class and macro-averaged F1 scores look like, particularly on rare classes like `Worms` and `Backdoors`?
+
+> ### Reminder: Split Your Training and Test Data!
+>
+> The data you feed into `model_report` must be **held out** from the data you fine-tuned on. If you evaluate on rows the model already trained on, you are measuring memorization, not detection, and your local numbers will look far better than your benchmark score.
+>
+> Decide on your split **before** you start Task 2, keep the split reproducible (fix your random seed), and make sure your held-out set is **stratified**, so that every attack category (including the rare ones) is represented in both halves. A common starting point is 80/20 train/test, but justify whatever you choose in your report.
+>
+> Remember that the benchmarking run on Torch uses data your model has never seen. Your local evaluation is only a useful predictor of that score if you treat your test set the same way.
+
 ---
 
 ## Task 3: Write Your Analytical Report
@@ -252,7 +272,7 @@ You must upload the following three deliverables to the course submission portal
 
 You cannot mix and match parts of a submission. Each submission must include all files (including the report).
 
-Before you upload, read [Part IV: Grading and Benchmarking](#part-iv-grading-and-benchmarking). Every submission counts against your extra credit, so test your model locally first.
+Before you upload, read [Part IV: Grading and Benchmarking](#part-iv-grading-and-benchmarking). Every submission counts against your extra credit, so [test your model locally](#21-test-your-exported-model-locally-model_report) with the `model_report` tooling first.
 
 ---
 
