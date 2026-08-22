@@ -107,6 +107,18 @@ To fine-tune your model, network logs must be transformed into structured prompt
 
 As a starting point, use the UNSW-NB15 dataset, along with other network traffic sources that you like. Keep the input data format consistent across your entire dataset!
 
+#### The Dataset: UNSW-NB15
+
+Created by the Australian Centre for Cyber Security at UNSW, mixing real packet captures with synthetic attack traffic from the IXIA PerfectStorm tool.
+
+**Official dataset page:** https://research.unsw.edu.au/projects/unsw-nb15-dataset
+
+**Citation:**
+> Moustafa, N., & Slay, J. (2015). UNSW-NB15: a comprehensive data set for network intrusion detection systems. *2015 MilCIS*, IEEE. [DOI](https://doi.org/10.1109/MilCIS.2015.7348942)
+
+We are hosting a subset of UNSW Data for easy download: [Download Link](https://nyu.box.com/s/ahob3ibcszm9i7n9a2jh84sag0dzuuar)
+It is recommended that you source your **own** data, not just what we provide. 
+
 Think carefully about how much training data you need. Is 50 data points enough? What about 1,000, 10,000, 100,000, 200,000, or more? Consider how the size and diversity of your dataset may affect the quality of your fine-tuned model.
 
 #### Custom Formatting in `prompter.py`
