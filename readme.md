@@ -92,10 +92,11 @@ Before beginning training, make sure to switch your optimizer:
 
 ---
 
-#### D. Cloud Fallback: Google Colab
+#### D. Cloud Fallback: Jupyter Notebook & Google Colab
 If your local hardware is not a viable option, a pre-configured **Jupyter Notebook** is provided in this repository under the name `Unsloth_Studio_Colab.ipynb`.
 *   Open the notebook in [Google Colab](https://colab.research.google.com/).
 *   Use Colab's free cloud T4 GPU compute resources to install and run the Unsloth Studio interface remotely. Note that free Colab tiers face strict file persistence limitations, usage limits, and session timeouts.
+*   You **are able** to use Colab and connect to a local runtime (your hardware), if you like. It's extra overhead but some folks prefer the notebook format. However, the 'train' feature will only work if you have a supported GPU available. Unsloth Desktop is better supported, the notebook is designed for Colab Hosted Computing. 
 *   *Note: If you run into persistent storage boundaries or experience compute limit timeouts, it is highly recommended to opt into the paid Colab plan to access more advanced hardware (which drastically reduces compute training time) and secure more persistent storage.*
 
 ---
