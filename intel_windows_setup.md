@@ -106,9 +106,10 @@ Do these three in order. Order matters for the third one.
 
 ## 1a. Intel graphics driver
 
-Go to Intel's website, search for "Intel Arc driver", and install the current driver for your laptop.
-
 If Unsloth Studio already shows your GPU when it starts (something like "Intel(R) Arc(TM) 140V GPU"), you already have this and can skip it.
+
+Go to Intel's website, search for "Intel Arc driver", and install the current driver for your laptop.
+OR, use your hardware manufacturer (Dell, HP, Asus, Lenovo, etc) to check for the most up to date software for your specific hardware environment.
 
 ## 1b. Visual Studio Build Tools
 
@@ -117,10 +118,10 @@ This provides the compiler. It is a Microsoft product and it is free.
 1. Search the web for "Build Tools for Visual Studio" and go to Microsoft's official download page. Look under the heading "Tools for Visual Studio".
 2. Download and run the installer. You do **not** need full Visual Studio, only Build Tools.
 3. In the installer, on the "Workloads" tab, tick **Desktop development with C++**.
-4. Now switch to the **Individual components** tab at the top. In the search box, type `v143`. Tick **MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)**.
+4. Now switch to the **Individual components** tab at the top. In the search box, type `v143`. Tick **MSVC v143 - VS 2022 C++ x64/x86 build tools (Latest)**. 
 5. Click Install. This is the big download, roughly 7 GB.
 
-Step 4 is not optional and is easy to miss. The newest compiler version that comes by default does not work with Intel's tools. You need this slightly older one installed alongside it.
+**IMPORTANT:** Step 4 is not optional and is easy to miss. The newest compiler version that comes by default does not work with Intel's tools, **2022 MUST BE SELECTED**. You need this slightly older one installed alongside it.
 
 ## 1c. Intel oneAPI compiler
 
@@ -201,6 +202,7 @@ Unsloth Studio has to be started in a particular way from now on. The Start Menu
 ### Creating the file (read this carefully)
 
 Notepad will try to save your file as a text file, which will not work. Follow these steps exactly.
+We are suggesting Notepad because it's simple, everyone has it, and doesn't mess with formatting.
 
 1. Open Notepad.
 2. Paste the text from the box below.
@@ -211,7 +213,7 @@ Notepad will try to save your file as a text file, which will not work. Follow t
 7. Type the filename exactly, including the `.bat` at the end.
 8. Click Save.
 
-If you end up with a file called `start-unsloth.bat.txt`, step 6 did not happen. Delete it and try again.
+If you end up with a file called `start-unsloth.bat.txt`, step 6 did not happen. Delete it and try again!
 
 ### File 1: `start-unsloth.bat`
 
