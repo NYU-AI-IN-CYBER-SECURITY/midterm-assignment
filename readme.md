@@ -13,7 +13,7 @@ Your job in this project is four things, in this order:
 | :-- | :-- | :-- |
 | **1** | [Build your training dataset and design your prompt](#task-1-build-your-training-dataset-and-design-your-prompt-prompterpy) | `prompter.py` plus your formatted training data |
 | **2** | [Fine-tune the model in Unsloth Studio](#task-2-fine-tune-the-model-in-unsloth-studio) | `<NYUID>.gguf` |
-| **3** | [Write your analytical report](#task-3-write-your-analytical-report) | `<NYUID>_report.pdf` or `<NYUID>_report.md` |
+| **3** | [Write your analytical report](#task-3-write-your-analytical-report) | `<NYUID>_report.md` |
 | **4** | [Submit all materials for benchmarking](#task-4-submit-your-deliverables-for-benchmarking) | All three files uploaded together |
 
 Before you start Task 1, read [Part I: Background](#part-i-background) and complete [Part II: Environment Setup](#part-ii-environment-setup).
@@ -44,16 +44,18 @@ Before you start Task 1, read [Part I: Background](#part-i-background) and compl
   - [3.2 The "All Normal" Majority Blindness](#32-the-all-normal-majority-blindness)
   - [3.3 Prompting vs. Machine Learning Boundaries](#33-prompting-vs-machine-learning-boundaries)
   - [3.4 Your Prompting Strategy](#34-your-prompting-strategy)
+  - [3.5 Your Base Model Choice](#35-your-base-model-choice)
 - [Task 4: Submit Your Deliverables for Benchmarking](#task-4-submit-your-deliverables-for-benchmarking)
 
 **[Part IV: Grading and Benchmarking](#part-iv-grading-and-benchmarking)**
 - [Grading Criteria](#grading-criteria)
 - [How Model Benchmarking Works](#how-model-benchmarking-works)
 - [Extra Credit for Fewer Submissions](#extra-credit-for-fewer-submissions)
+- [Why Benchmarking Works This Way](#why-benchmarking-works-this-way)
 
 **[Part V: Troubleshooting](#part-v-troubleshooting)**
 - [Hardware and Driver Installation Guides](#hardware-and-driver-installation-guides)
-- [Critical Fix: Intel GPU on Windows Triton Error](#critical-fix-intel-gpu-on-windows-triton-error)
+- [Intel GPU on Windows: Compiler and Export Failures](#intel-gpu-on-windows-compiler-and-export-failures)
 
 ---
 
@@ -66,11 +68,22 @@ Previously in this course, you worked with two distinct detectors network securi
 1. **Rule-Based Filtering (`if-then-else-Assignment`):** You crafted static boolean logic rules (like `if row['sttl'] > 200...`) to classify connections. You hit a hard performance ceiling because real network data overlaps heavily across feature boundaries, making simple manual cuts insufficient to split normal and malicious traffic cleanly.
 2. **Machine Learning Classifiers (`Random-Forest-Assignment`):** You used an ensemble of decision trees to fit tens of thousands of boundaries simultaneously across all features. You wrestled with extreme class imbalances (e.g., rare classes like Worms vs. dominant normal traffic) and optimized macro-averaged metrics (such as macro F1) by implementing preprocessing pipelines (like One-Hot Encoding) to handle categorical feature strings.
 
-### The LLM Paradigm: Semantic Reasoning
+### The LLM Paradigm: Semantic Reasoning Over Parsed Flows
 
-For this midterm project, instead of fitting numeric split-thresholds or hand-written heuristics, you will teach a generative model to perform **semantic reasoning** over network data from a PCAP file. You will format the raw network packets into conversational prompts and fine-tune a small LLM, **Liquid LFM2.5 (350M Parameter Model)**, to analyze packet characteristics and return an explicit security decision (`normal` or `attack`) and its corresponding attack category.
+Be precise about what this project is, because it shapes every decision you make later.
 
-By the end of this project, you will understand how to prepare unstructured data for LLMs, perform supervised fine-tuning, and export self-contained weights for local inference deployment.
+**What you are not doing:** you are not inspecting packet payloads. Nothing here reads bytes off the wire, reassembles a TCP stream, or looks inside an HTTP request.
+
+**What you are doing:** UNSW-NB15 begins life as raw PCAP. Those captures were parsed by flow analyzers (Argus and Bro/Zeek) into per-connection records, and each record was reduced to the 40-odd features you will work with (`proto`, `state`, `sttl`, `sload`, `ct_srv_dst`, and so on). Your input is that parsed PCAP output, one flow per row. Your job is to render each row as text, then run **supervised fine-tuning** on **Liquid LFM2.5 (350M Parameter Model)** so that it emits a strictly structured JSON decision, `normal` or `attack` plus the attack category, for flows it has never seen.
+
+There are two distinct things happening here, and your report should not confuse them:
+
+* **The training mechanics** are supervised fine-tuning toward a rigid, machine-parseable output schema. That is a formatting and optimization problem.
+* **The inference behavior** is semantic: the model reads a textual description of a parsed flow and reasons over what those field values *mean* as language. `state=INT` alongside a high `sttl` and near-zero `dbytes` reads as a recognizable pattern rather than as a stack of numeric inequalities. That is a real departure from the Random Forest, which could only compare numbers against thresholds.
+
+Neither of those is payload inspection, and you should not claim it is.
+
+By the end of this project, you will understand how to prepare structured records for LLM training, perform supervised fine-tuning, constrain a generative model to a machine-parseable output format, and export self-contained weights for local inference deployment.
 
 ---
 
@@ -91,7 +104,25 @@ We are using **Liquid LFM2.5** for this project due to its unique architectural 
 
 We will use **Unsloth Studio**, an open-source, no-code/low-code web UI that simplifies downloading, running, fine-tuning, and exporting open-source models. This allows us to focus on the value of data representation and prompt structure, and how LLMs fit into a Cyber Security workflow.
 
-*(If you prefer command-line/CLI development, you can review [Liquid AI's TRL and Unsloth Integration examples](https://docs.liquid.ai/lfm/fine-tuning/unsloth).)*
+> ### Unsloth Studio Desktop is the supported path. Use it.
+>
+> The desktop application installs and pins its own working set of dependencies,
+> including a compatible `llama-cpp-python` build and the right backend for your
+> hardware, inside its own environment at `~/.unsloth/studio`. It also gives you a
+> GUI for the training run and the GGUF export. That is the point: your effort in
+> this project belongs in your data and your training parameters, not in resolving
+> CUDA and llama.cpp build errors.
+>
+> You are free to work from the CLI, from raw TRL and Unsloth, or from your own
+> Python environment, and some of you will prefer it. Be aware that this is
+> **unsupported for this assignment**. If you go that route you own your own
+> dependency pinning. Course staff will help you with your data and your training
+> decisions, but not with your build toolchain. If you want to see what that path
+> looks like, review
+> [Liquid AI's TRL and Unsloth Integration examples](https://docs.liquid.ai/lfm/fine-tuning/unsloth).
+>
+> Whichever path you choose, the deliverable is identical: a fully merged `.gguf`
+> that loads and produces schema-valid JSON under `model_report`.
 
 ### A. Download Unsloth Studio Desktop
 
@@ -111,7 +142,7 @@ Once you install it and open the application, make sure to install any updates!
 * **Integrated Graphics and Modern CPUs (Intel/AMD):** Integrated chips will be automatically detected and supported.
 * **Apple Silicon (M1/M2/M3/M4):** macOS systems are natively supported out of the box, utilizing Apple's MLX framework for accelerated local inference and training.
 
-> **Hitting hardware detection, compilation, or driver issues?** Go to [Part V: Troubleshooting](#part-v-troubleshooting). Windows users on Intel GPUs should read the [Critical Fix](#critical-fix-intel-gpu-on-windows-triton-error) in case you face issues during training.
+> **Hitting hardware detection, compilation, or driver issues?** Go to [Part V: Troubleshooting](#part-v-troubleshooting). Windows users on Intel GPUs should read [Intel GPU on Windows](#intel-gpu-on-windows-compiler-and-export-failures) before they lose an evening to it.
 
 ### C. Cloud Fallback: Jupyter Notebook and Google Colab
 
@@ -145,15 +176,26 @@ Created by the Australian Centre for Cyber Security at UNSW, mixing real packet 
 
 We are hosting a subset of UNSW Data for easy download: [Download Link](https://nyu.box.com/s/ahob3ibcszm9i7n9a2jh84sag0dzuuar)
 
-It is recommended that you source your **own** data, not just what we provide.
+**You are expected to source your own data.** The subset we host is a starting point, not a sufficient training set.
 
 Think carefully about how much training data you need. Is 50 data points enough? What about 1,000, 10,000, 100,000, 200,000, or more? Consider how the size and diversity of your dataset may affect the quality of your fine-tuned model.
+
+Then think about *which* data you need. You already met this problem in the Random Forest assignment: the rare categories are rare, and no amount of hyperparameter tuning conjures signal that is not in the training set. If `Worms` and `Backdoor` have a handful of examples, your macro F1 is capped by that, not by your learning rate.
+
+Fixing that is a data engineering problem, and it is a deliberate part of this project:
+
+* Pull the **full** UNSW-NB15 release rather than the balanced 30k subset we host.
+* Find additional labelled network traffic from other public sources. They exist. Finding them, judging whether they are usable, and reconciling their schema with yours is the exercise.
+* Decide how to compose the final mix: resampling, oversampling the rare categories, or synthesizing additional rows from what you already have.
+* Keep the input format consistent across everything you merge, and note that anything you add changes what a "representative" held-out split means. Say so in your report.
+
+If you are stuck because a rare class will not improve, you have found the intended lesson. The answer is upstream of the model.
 
 ### 1.2 Custom Formatting in `prompter.py`
 
 You have been provided with a template Python script named `prompter.py`. This is where you specify how you plan to prompt your model. Only modify the sections you are given to edit. No more. You may not install any new libraries, dependencies, etc., within the prompter.py file.
 
-When your model is evaluated, the grading system will present raw network packet details as a dictionary to your prompter.py, which will format it into a set string based on your design and return the prompt for us to feed as a model input to your model. Keep in mind that Liquid LFM2.5 uses a **ChatML-like template format** with `system`, `user`, and `assistant` blocks.
+When your model is evaluated, the grading system will present one parsed flow record as a dictionary (column name to string value) to your prompter.py, which will format it into a set string based on your design and return the prompt for us to feed as a model input to your model. Keep in mind that Liquid LFM2.5 uses a **ChatML-like template format** with `system`, `user`, and `assistant` blocks.
 
 To understand the template details, see [Liquid AI Chat Template Documentation](https://docs.liquid.ai/lfm/key-concepts/chat-template).
 
@@ -184,7 +226,23 @@ or
 
 * **`label` keys:** Must be exactly `"normal"` or `"attack"`.
 * **`type` keys:** Must be one of the following 10 network categories:
-  `Normal`, `Fuzzers`, `Analysis`, `Backdoors`, `DoS`, `Exploits`, `Generic`, `Reconnaissance`, `Shellcode`, `Worms`
+  `Normal`, `Fuzzers`, `Analysis`, `Backdoor`, `DoS`, `Exploits`, `Generic`, `Reconnaissance`, `Shellcode`, `Worms`
+
+> ### Spelling is exact, and there is no fallback.
+>
+> Case is ignored, so `DoS`, `dos` and `DOS` all match. Spelling is not ignored.
+> The category is **`Backdoor`**, singular. `Backdoors` does not match and is
+> scored as a miss. The same is true of any other near-miss spelling.
+>
+> The grader parses your output as JSON and reads the `label` and `type` fields
+> verbatim. If the JSON does not parse, or a field is missing, or a value is not
+> on the list above, that field is a guaranteed miss. It is never rescued by
+> alias remapping, keyword scanning, or code-fence stripping. A chatty or
+> off-format model scores zero.
+>
+> This list, the list in the `prompter.py` docstring, and the list in
+> `model_report/readme.md` are the same list. If you ever find them disagreeing,
+> `prompter.py` is authoritative and you should tell the course staff.
 
 ---
 
@@ -195,25 +253,84 @@ or
 Once you have formatted your training data and verified its alignment with your `prompter.py` formatting function, load it into Unsloth Studio to run your training pipeline.
 
 1. **Select the Model:** Choose the **Liquid LFM2.5 (350M Parameter Model)** base model in Unsloth Studio.
-   You get to choose between the [LFM2.5-350M model](https://docs.liquid.ai/lfm/models/lfm25-350m) OR [LFM2.5-Encoder-350M](https://docs.liquid.ai/lfm/models/lfm25-encoder-350m), read up on both and make your choice.
+   You must choose between two models: [LFM2.5-350M](https://docs.liquid.ai/lfm/models/lfm25-350m) and [LFM2.5-Encoder-350M](https://docs.liquid.ai/lfm/models/lfm25-encoder-350m).
+
+   **This choice is part of the assignment, and it is not a coin flip.** These are two different architectures built for two different jobs. Read both model cards before you commit. Understand what each architecture actually emits at inference time, then hold that against the output this project requires in [1.3](#13-crucial-strict-json-output-format). Then load your pick in Unsloth Studio, generate a few responses, and see for yourself what comes out.
+
+   We are deliberately not telling you which one to use. Selecting an appropriate model for a task, from a model card and a five minute experiment, is a skill this course expects you to leave with. You will be asked to justify this choice in your report ([3.5](#35-your-base-model-choice)). Picking one, discovering it cannot do the job, and describing how you worked that out is a strong answer. Picking one at random and never noticing is not.
+
+   ![Unsloth Studio Train screen: searching the Hugging Face model hub for lfm2.5-350m and picking a base model, with the training METHOD dropdown below it](images/select_model.gif)
+
+   *Searching the model hub from the Train screen. Note that several LFM2.5 variants come back, including the encoder. Read before you click.*
 2. **Upload Dataset:** Feed your formatted data into Unsloth. Open the dataset configuration and make sure to map the target labels yourself.
+
+   ![Unsloth Studio dataset panel: uploading a local training file, viewing the loaded dataset, and the optional eval dataset slot](images/setting_up_data_set.gif)
+
+   *Loading your formatted training data. Use **View dataset** to confirm the rows look the way you intended before you train on them.*
 3. **Choose Adaptation Method:** Select your adapter training configurations:
    * **LoRA (Low-Rank Adaptation)**
    * **QLoRA (Quantized Low-Rank Adaptation)**
    * **Full-Model Weights Training**
    * *Note: Since this 350M parameter model is extremely lightweight, quantization (such as 4-bit loading) is not required for memory conservation during training, allowing you to train with higher fidelity (or even full) weights. 
+
+   > #### Intel XPU only: change the optimizer, or your run will lie to you
+   >
+   > **This applies only if you are training on an Intel GPU (an Intel Arc card, or
+   > the integrated graphics on an Intel Core Ultra chip). If you are on NVIDIA or
+   > Apple Silicon, skip this and leave the default alone.**
+   >
+   > Unsloth Studio defaults its optimizer to `adamw_8bit` or `paged_adamw_8bit`.
+   > Those are bitsandbytes 8-bit optimizers. They are supported on NVIDIA CUDA.
+   > They are **not** supported by the Intel XPU backend.
+   >
+   > The failure mode is the dangerous kind, because **it does not raise an error**.
+   > The run starts, the progress bar advances, and Studio reports the run as
+   > finished. Nothing actually trained. You then export a `.gguf` that is the base
+   > model with extra steps, submit it, and spend a benchmarking attempt on a model
+   > that never learned anything.
+   >
+   > **Before you start a run:** open the training configuration, find the
+   > **Optimizer** setting under the advanced parameters, and change it to
+   > **`adamw_torch`**.
+   >
+   > **How to tell it happened anyway:** your loss never moves off its starting
+   > value, or grad norm sits at zero for the entire run. After training, use
+   > Studio's **Compare in Chat** to put the base model and your fine-tuned model
+   > side by side on a prompt from your training data. If the two answer
+   > identically, you did not train. See
+   > [Intel GPU on Windows](#intel-gpu-on-windows-compiler-and-export-failures) in
+   > Part V.
+
+   ![Unsloth Studio training parameters: adaptation method, learning rate, warmup steps, epochs, save steps and seed](images/setting_up_params.gif)
+
+   *Setting the training parameters. This is the other half of the assignment: your data on one side, these numbers on the other. Note the seed field, and keep it fixed so your runs are reproducible.*
+
 4. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export. Not need to apply quantization here FP16 is okay (the model is quite small).
+
+   ![Unsloth Studio training run reaching Step 30 of 30 and completing, exposing the Export to GGUF button](images/start_training.gif)
+
+   *A training run through to completion. When it finishes, **Export to GGUF** appears in the Training Progress panel. That export, fully merged, is the `.gguf` you submit.*
+
+   ![Unsloth Studio GGUF export: picking a quantization, choosing a save folder, starting the export, and the Export finished successfully confirmation](images/export_model.gif)
+
+   *The export itself: pick your quantization, choose a save folder, **Start Export**, and wait for **Export finished successfully**. The walkthrough happens to select `q4_k_m`; you do not have to. FP16 is fine for a model this small, and the file it writes to your chosen folder is what you rename to `<NYUID>.gguf` and submit.*
 
 ### 2.1 Test Your Exported Model Locally (`model_report`)
 
-> **Before you submit anything, look at the `model_report` folder in this repository.**
+> **Running `model_report` is required before every benchmarking submission.**
+>
+> The `model_report` folder in this repository lets you load your exported `.gguf`
+> and evaluate it against a labelled dataset **that you provide yourself**. A
+> submission that fails on something `model_report` would have caught still burns
+> one of your five attempts and still costs you extra credit. There is no version
+> of this project where skipping local evaluation is the fast path.
 
 It contains files that let you load your exported `.gguf` and evaluate it against a labeled dataset **that you provide yourself**. Use it to catch the failures that most often waste a benchmarking attempt:
 
 * Does the model actually load and respond to prompts produced by your `prompter.py`?
 * Is **every** response a valid JSON object with exactly the `label` and `type` keys, and nothing else (no preamble, no trailing commentary, no markdown fences)?
 * Are the values restricted to the allowed sets listed in [1.3](#13-crucial-strict-json-output-format), or is the model inventing categories?
-* What do your per-class and macro-averaged F1 scores look like, particularly on rare classes like `Worms` and `Backdoors`?
+* What do your per-class and macro-averaged F1 scores look like, particularly on rare classes like `Worms` and `Backdoor`?
 
 > ### Reminder: Split Your Training and Test Data!
 >
@@ -227,9 +344,14 @@ It contains files that let you load your exported `.gguf` and evaluate it agains
 
 ## Task 3: Write Your Analytical Report
 
-> **Deliverable:** `<NYUID>_report.pdf` or `<NYUID>_report.md`, between 600 and 2,000 words.
+> **Deliverable:** `<NYUID>_report.md`, between 600 and 2,000 words.
 
-You must include an analytical report as a PDF (`<NYUID>_report.pdf`) or a Markdown file (`<NYUID>_report.md`). Your report must be **between 600 and 2,000 words** and must comprehensively address the following engineering challenges:
+You must include an analytical report as a **Markdown file**, named `<NYUID>_report.md`. Markdown only. PDF, Word, Google Docs exports and plain text files are not accepted and will not be graded. Your report must be **between 600 and 2,000 words** and must comprehensively address the following engineering challenges:
+
+> **2,000 is a ceiling, not a target.** Longer is not better, and padding is
+> visible from orbit, don't pad. A tight 900-word report that says what you actually did,
+> with your own numbers, beats a 1,900-word report that restates the questions
+> back at us. Write to the shortest length that answers all five sections well.
 
 ### 3.1 Dataset Balancing Strategy
 
@@ -243,7 +365,7 @@ Should your training dataset be **balanced (50/50 ratio)** or **left unbalanced 
 What happens if your model learns a degenerate strategy and returns "Normal" for everything?
 
 * If a classifier defaults to "Normal", it might achieve 99% accuracy on an unbalanced, real-world wire because attacks are rare.
-* However, its **macro-averaged F1 score** will collapse toward zero, and highly dangerous, low-frequency events (like Worms or Backdoors) will bypass your defense undetected.
+* However, its **macro-averaged F1 score** will collapse toward zero, and highly dangerous, low-frequency events (like Worms or Backdoor) will bypass your defense undetected.
 * Detail exactly how you will construct your training splits or adjust class ratios to prevent your LLM from acquiring this majority-class blindness.
 
 ### 3.3 Prompting vs. Machine Learning Boundaries
@@ -256,6 +378,13 @@ What happens if your model learns a degenerate strategy and returns "Normal" for
 
 * Explain your chosen prompting strategy, the features you selected, how you structured your template, and why you believe this representation works best.
 
+### 3.5 Your Base Model Choice
+
+* Which base model did you select in [Task 2](#task-2-fine-tune-the-model-in-unsloth-studio), `LFM2.5-350M` or `LFM2.5-Encoder-350M`, and why?
+* What is the architectural difference between the two, and what does each one actually produce at inference time?
+* Connect that to the output requirement in [1.3](#13-crucial-strict-json-output-format). Why does that requirement constrain which architecture can do this job at all?
+* If you tried both, or picked one and had to change course, say so and describe what you observed. Showing your reasoning is worth more here than arriving at the right answer by luck.
+
 ---
 
 ## Task 4: Submit Your Deliverables for Benchmarking
@@ -266,7 +395,7 @@ You must upload the following three deliverables to the course submission portal
 
 1. **`prompter.py`:** Your prompt engineering script containing your dataset formatting logic.
 2. **`<NYUID>.gguf`:** Your fine-tuned, merged GGUF model exported from Unsloth Studio.
-3. **`<NYUID>_report.pdf`** (or **`<NYUID>_report.md`**): Your analytical report addressing the four conceptual questions on dataset balancing, majority blindness, and semantic boundaries (600 to 1,200 words).
+3. **`<NYUID>_report.md`:** Your analytical report, in Markdown, addressing the five conceptual questions on dataset balancing, majority blindness, semantic boundaries, your prompting strategy, and your base model choice (600 to 2,000 words).
 
 *Note: Replace `<NYUID>` with your actual NYU NetID in the filenames.*
 
@@ -280,8 +409,24 @@ Before you upload, read [Part IV: Grading and Benchmarking](#part-iv-grading-and
 
 ## Grading Criteria
 
-* For the report, there is no hard numeric rubric for performance. You are graded on your **demonstrated effort** and the **correctness/depth of thought** in your analytical report answers. It is Pass/Fail.
-* For the performance of your model, you will receive a score similar to the previous assignments.
+Your midterm has two independently graded components.
+
+### 1. The Report (Pass / Fail)
+
+The report is **not** scored against your model's benchmark number. A weak model with a sharp report passes. A strong model with a hollow report does not. To earn a **Pass**, your report must:
+
+* Be submitted as `<NYUID>_report.md`, in Markdown. Any other format is a fail.
+* Stay within **600 to 2,000 words**.
+* Address **all five** sections, [3.1](#31-dataset-balancing-strategy) through [3.5](#35-your-base-model-choice). A missing section is an automatic fail.
+* Describe **what you actually did**, not what could be done in general. Name your split ratio, your class ratios, your selected features, your base model, and your reasoning for each.
+* Cite **your own numbers**. Reference your local `model_report` results, particularly per-class F1 on the rare categories, and say what those numbers told you and what you changed as a result.
+* Be **consistent with your submitted `prompter.py`**. If the report describes a feature set or a template your code does not implement, that is a fail. Looking at you, LLM heavy users, try writing this yourself, we promise it's a valuable learning!
+
+A **Fail** looks like: generic textbook answers that would read identically for any student in the class, sections left unanswered, no reference to your own experiments, under the word count, or claims contradicted by your own code.
+
+### 2. The Model (Scored)
+
+Your model receives a numeric score from the Torch benchmarking run, computed the same way as in previous assignments. See [How Model Benchmarking Works](#how-model-benchmarking-works).
 
 ## How Model Benchmarking Works
 
@@ -309,6 +454,31 @@ You can earn **extra credit for minimizing the number of submissions**. You star
 
 ---
 
+## Why Benchmarking Works This Way
+
+Every year someone asks why the schedule is slow and why extra credit shrinks with each attempt. Two reasons, both worth understanding, because these are conditions you will meet again in industry.
+
+**Compute is a shared, finite resource.** Torch is NYU Tandon's supercomputer, and it is not sitting idle waiting on this class. Every submission from every student is a scheduled job in a queue behind other research workloads. A three-day-a-week cadence is what the available allocation supports. This is the normal condition for large model work: you wait your turn, whether the queue is an HPC scheduler, a shared GPU cluster at your employer, or a cloud quota. Your instructors are old enough to find this nostalgic.
+
+**The extra credit rewards validation, not luck.** It is not a penalty for iterating. It is a reward for iterating **locally**, where iteration is free and instant, rather than using a shared benchmark as your debugger. Everything the benchmark measures, JSON validity, schema conformance, macro and per-class F1, rare-class collapse, is measurable on your own machine with `model_report` and a held-out split, in minutes, as many times as you like. Nothing stops you from running fifty local evaluations. That is the intended workload.
+
+The intended workflow is: iterate locally until your held-out numbers stop improving, then submit once. A student who does that and submits a single strong model has demonstrated exactly the engineering discipline the extra credit exists to reward. A student who submits five times to find out what happens is spending a shared resource to answer questions they could have answered themselves in an afternoon.
+
+**You cannot find out for free, and that is the honest part.** There is no way to see how your model actually performs without submitting at least once. The benchmark runs on data you have never seen and cannot see. Your local held-out numbers are a prediction, not the result, and the whole point of the exercise is that the prediction is only as good as the data engineering behind it.
+
+So the trick, and it really is the whole trick, is to do as much local testing as you possibly can before you spend that first attempt:
+
+* Source as much good, relevant, labelled data as you can find, and make sure your rare categories are actually represented.
+* Structure your training data well, and structure your held-out split so it honestly resembles traffic your model has never seen.
+* Run `model_report` until the failure modes you can see locally are gone: unparseable output, invented categories, rare-class collapse.
+* Only then submit.
+
+One genuinely useful case for a second attempt: if your local held-out score and your benchmark score diverge sharply, that is real information. It usually means your split leaked, your held-out set was not stratified, or the extra data you sourced does not resemble the benchmark distribution. Diagnose it, fix it, and write about it in your report. That is worth more than the four points.
+
+This is not an artifact of grading. It is what shipping looks like. You test everything you can reach, you build the most representative evaluation you can afford, and then real data is the only thing that actually tells you whether you were right. Just like a real product launch, finding out always comes with a cost. Your job is to make that cost as small as possible before you pay it.
+
+---
+
 # Part V: Troubleshooting
 
 ## Hardware and Driver Installation Guides
@@ -319,49 +489,47 @@ If you experience hardware detection, compilation, or driver issues on your devi
 * **AMD CPUs/GPUs:** [AMD Installation Guide](https://unsloth.ai/docs/get-started/install/amd)
 * **Apple Silicon / Metal:** [mlx-tune Guide](https://github.com/ARahim3/mlx-tune)
 
-## Critical Fix: Intel GPU on Windows Triton Error
+## Intel GPU on Windows: Compiler and Export Failures
 
-If you run Unsloth Desktop on **Windows with an Intel GPU** and encounter the following error during launch or training:
+If you run Unsloth Studio on **Windows with an Intel graphics chip** (Intel Core Ultra, showing up as something like "Intel(R) Arc(TM) 140V GPU"), you may hit one of these:
 
-> `Failed to import ML libraries: cannot import name 'intel' from 'triton._C.libtriton'`
+![Unsloth Studio launch error banner: Failed to import ML libraries, cannot import name 'intel' from 'triton._C.libtriton'](images/intel_triton_failure.png)
 
-Follow these exact steps in an **Administrator PowerShell** window to repair and relink Triton:
+*At launch, as a red banner.*
 
-### Step 1: Clean Up Broken Triton Files and Cache
+![The same Triton import failure surfacing in the Training Progress panel](images/intel_triton_failure_2.png)
 
-Remove any broken Triton packages or cached directories that interfere with the Intel XPU compilation. Make sure to replace `<YOURUSERID>` with your actual Windows username:
+*The same failure in the Training Progress panel when you start a run.*
 
-```powershell
-Remove-Item -Recurse -Force "C:\Users\<YOURUSERID>\.unsloth\studio\unsloth_studio\Lib\site-packages\triton" -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force "C:\Users\<YOURUSERID>\.unsloth\studio\unsloth_studio\Lib\site-packages\triton-*" -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force "$HOME\.triton\cache" -ErrorAction SilentlyContinue
-```
+![Unsloth Studio export error: Failed to load checkpoint, we encountered some issues during automatic conversion of the weights](images/export_error_gguf_unsloth.png)
 
-### Step 2: Force-Reinstall `pytorch-triton-xpu`
+*And at the end, when you try to export your GGUF.*
 
-Execute the Python environment's pip within Unsloth Studio's internal directory to reinstall the Intel-specific Triton GPU wheel:
+Along with `Failed to find C compiler` or `Failed to find C++ compiler` in the log, or a long run of lines ending in `MISSING` or `CONVERSION`.
 
-```powershell
-& "C:\Users\<YOURUSERID>\.unsloth\studio\unsloth_studio\Scripts\python.exe" -m pip install --force-reinstall --index-url https://download.pytorch.org/whl/xpu pytorch-triton-xpu
-```
+**These look like separate problems. They are one problem.** On Intel graphics, Unsloth has to compile a small piece of software on your machine at runtime. Windows ships without a C++ compiler, and the Unsloth installer neither installs one nor checks for one. The failure then gets reported somewhere confusing: the export error talks about model weights, but your weights are fine. The compiler is what is missing.
 
-### Step 3: Verify the Installation
+> ### Full repair guide: [`intel_windows_setup.md`](intel_windows_setup.md)
+>
+> Follow that guide start to finish. It covers installing the Build Tools and the
+> Intel oneAPI compiler, repairing the Triton install, and the two launcher files
+> you will use to start Studio from then on. Budget about 45 minutes and 10 GB of
+> disk.
+>
+> **Two warnings worth reading even if you skip everything else:**
+>
+> 1. **Every path and version number in that guide is an example from one
+>    machine.** Yours will differ. The guide tells you where to look up your own
+>    values. Confirm each path exists before you run a command against it, and run
+>    the test step at the end to prove the fix worked on **your** installation.
+>    Commands that finish without visible errors are not proof.
+> 2. **Never edit `loading_report.py` to delete a `raise RuntimeError` line.** You
+>    will find this suggested online. It disables a safety check, and the export
+>    then "succeeds" while producing a `.gguf` full of random numbers. It will
+>    load, it will answer, and every answer will be nonsense. That model will score
+>    zero and burn a benchmarking attempt.
 
-Verify that Triton is linked correctly to the Intel XPU backend using this command. It must output the success message without errors:
-
-```powershell
-& "C:\Users\<YOURUSERID>\.unsloth\studio\unsloth_studio\Scripts\python.exe" -c "import triton; from triton._C.libtriton import intel; print('SUCCESS: Intel XPU Triton is linked correctly!')"
-```
-
-### Step 4: Change Optimizer Settings in Unsloth Studio UI
-
-Unsloth Studio defaults its advanced hyperparameters to an 8-bit optimizer (`adamw_8bit` or `paged_adamw_8bit`). While natively supported on NVIDIA CUDA, 8-bit bitsandbytes optimizers are **not supported out of the box** by Intel XPU backend architectures.
-
-Before beginning training, make sure to switch your optimizer:
-
-1. In the Unsloth Studio UI, navigate to your model's training configuration screen.
-2. Locate the **Optimizer** setting (usually under advanced configurations).
-3. Change it from `adamw_8bit` or `paged_adamw_8bit` to the standard **`adamw_torch`** optimizer.
+If the guide does not get you there, do not keep fighting it with a deadline approaching. Switch to the [Colab notebook](#c-cloud-fallback-jupyter-notebook-and-google-colab) in this repository and finish the assignment. That is a supported path, not a consolation prize.
 
 ---
 
