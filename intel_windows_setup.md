@@ -9,7 +9,7 @@
 Yes, if **all** of these are true:
 
 - You are on Windows 11
-- Your laptop has an Intel graphics chip, not an NVIDIA one (Intel Core Ultra processors such as the 258V or 268V, which show up as "Intel(R) Arc(TM) 140V GPU")
+- Your laptop has an Intel graphics chip, not an NVIDIA one (Intel Core Ultra processors such as the 258V or 268V, which show up as "Intel(R) Arc(TM) 140V GPU" or Intel's 3rd generation such as "Intel(R) Arc(TM) B390 GPU"). Using Intel Iris may be possible, but it's an old generation and we do not recommend it. Use an alternative setup if possible, or the Colab notebook. 
 - Unsloth Studio is failing with one of the errors listed below
 
 No, if you have an NVIDIA graphics card. None of this applies to you.
