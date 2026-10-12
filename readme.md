@@ -18,6 +18,14 @@ Your job in this project is four things, in this order:
 
 Before you start Task 1, read [Part I: Background](#part-i-background) and complete [Part II: Environment Setup](#part-ii-environment-setup).
 
+### Important to Keep in Mind
+
+> [!CAUTION]
+> **Benchmarking is not instant.** When you submit, we package your submission and send it to NYU's High Performance Computing group, where your model is benchmarked on the Torch supercomputer. Jobs wait in a queue and take time to compute. We put your model through a grueling set of scenarios!
+>
+> You will receive your benchmark score and a `token.txt` file from the portal by <ins>**early afternoon on the next business day**</ins>. A submission made on Friday will not return its score until <ins>**Monday**</ins>. Plan your work around this delay so that you have a score in hand <ins>**before the deadline**</ins>.
+>
+> **It is expected that you work on this project early and diligently.** There is no flexibility on deadlines. Working with large, high-cost computational resources means dealing with shared queues, limited access and long wait times, and learning to plan around those realities is very much part of this type of work.
 ---
 
 ## Table of Contents
@@ -389,19 +397,51 @@ What happens if your model learns a degenerate strategy and returns "Normal" for
 
 ## Task 4: Submit Your Deliverables for Benchmarking
 
-> **Deliverable:** All three files, uploaded together to the course submission portal.
+> **Deliverable:** Your three files, uploaded to the course submission portal for benchmarking, then submitted to Gradescope for grading.
 
-You must upload the following three deliverables to the course submission portal:
+Submission happens in three steps, and they must be completed in this order:
 
-1. **`prompter.py`:** Your prompt engineering script containing your dataset formatting logic.
-2. **`<NYUID>.gguf`:** Your fine-tuned, merged GGUF model exported from Unsloth Studio.
-3. **`<NYUID>_report.md`:** Your analytical report, in Markdown, addressing the five conceptual questions on dataset balancing, majority blindness, semantic boundaries, your prompting strategy, and your base model choice (600 to 2,000 words).
+1. Upload to the **course submission portal**.
+2. Wait for your **benchmark score and token**.
+3. Submit to **Gradescope**.
 
-*Note: Replace `<NYUID>` with your actual NYU NetID in the filenames.*
+### Before You Submit
 
-You cannot mix and match parts of a submission. Each submission must include all files (including the report).
+- Read [Part IV: Grading and Benchmarking](#part-iv-grading-and-benchmarking).
+- Every portal submission counts against your extra credit, so [test your model locally](#21-test-your-exported-model-locally-model_report) with the `model_report` tooling before you upload.
 
-Before you upload, read [Part IV: Grading and Benchmarking](#part-iv-grading-and-benchmarking). Every submission counts against your extra credit, so [test your model locally](#21-test-your-exported-model-locally-model_report) with the `model_report` tooling first.
+### Step 1: Upload to the Course Submission Portal
+
+Upload all three files together:
+
+| File | Description |
+|------|-------------|
+| `prompter.py` | Your prompt engineering script containing your dataset formatting logic. |
+| `<NYUID>.gguf` | Your fine-tuned, merged GGUF model exported from Unsloth Studio. |
+| `<NYUID>_report.md` | Your analytical report in Markdown (600 to 2,000 words) addressing the five conceptual questions: dataset balancing, majority blindness, semantic boundaries, your prompting strategy, and your base model choice. |
+
+Replace `<NYUID>` with your NYU NetID (for example, `ab1234.gguf` and `ab1234_report.md`).
+
+Every submission must include all three files, including the report. You cannot mix and match files across submissions.
+
+### Step 2: Wait for Your Benchmark Score
+
+Benchmarking is not instant. After you submit, we package your submission and send it to NYU's High Performance Computing group, where your model is benchmarked on the Torch supercomputer. Jobs wait in a queue and take time to compute.
+
+You will receive your **benchmark score** and a **`token.txt`** file from the portal by early afternoon on the next business day. A submission made on Friday will return its score on Monday. Plan your work around this delay so that you have a score in hand before the deadline.
+
+### Step 3: Submit to Gradescope
+
+Once you have a benchmark score you want graded, upload these three files to Gradescope:
+
+| File | Description |
+|------|-------------|
+| `prompter.py` | Must be identical to the `prompter.py` from the portal submission that produced the score. |
+| `token.txt` | The token file you received from the portal for that submission. |
+| `<NYUID>_report.md` | Must be identical to the '<NYUID>_report.md' from the portal submission that produced the score. |
+
+The token links your Gradescope submission to a specific benchmark result, so make sure the token and `prompter.py` come from the same portal submission.
+
 
 ---
 
