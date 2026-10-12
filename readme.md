@@ -110,7 +110,7 @@ We are using **Liquid LFM2.5** for this project due to its unique architectural 
 
 ## 3. Environment Setup and Unsloth Studio Installation
 
-We will use **Unsloth Studio**, an open-source, no-code/low-code web UI that simplifies downloading, running, fine-tuning, and exporting open-source models. This allows us to focus on the value of data representation and prompt structure, and how LLMs fit into a Cyber Security workflow.
+We will use **Unsloth Studio**, an open-source, no-code/low-code web UI that simplifies downloading, running, fine-tuning, and exporting open-source models. This allows us to focus on the value of data representation and prompt structure, and how LLMs fit into a Cyber Security workflow. If you have prior experience fine-tuning models and prefer other methods, you are welcome to do so at your own discretion but do **not** expect support when deviating!
 
 > ### Unsloth Studio Desktop is the supported path. Use it.
 >
