@@ -78,7 +78,7 @@ Previously in this course, you worked with two distinct detectors network securi
 
 ### The LLM Paradigm: Semantic Reasoning Over Parsed Flows
 
-Be precise about what this project is, because it shapes every decision you make later.
+Let's be precise about what this project is, because it will shape decision you will here and in your final project.
 
 **What you are not doing:** you are not inspecting packet payloads. Nothing here reads bytes off the wire, reassembles a TCP stream, or looks inside an HTTP request.
 
@@ -265,17 +265,19 @@ Once you have formatted your training data and verified its alignment with your 
 
    **This choice is part of the assignment, and it is not a coin flip.** These are two different architectures built for two different jobs. Read both model cards before you commit. Understand what each architecture actually emits at inference time, then hold that against the output this project requires in [1.3](#13-crucial-strict-json-output-format). Then load your pick in Unsloth Studio, generate a few responses, and see for yourself what comes out.
 
-   We are deliberately not telling you which one to use. Selecting an appropriate model for a task, from a model card and a five minute experiment, is a skill this course expects you to leave with. You will be asked to justify this choice in your report ([3.5](#35-your-base-model-choice)). Picking one, discovering it cannot do the job, and describing how you worked that out is a strong answer. Picking one at random and never noticing is not.
+   We are deliberately not telling you which one to use. Selecting an appropriate model for a task, from a model card and a five minute experiment, is a skill this course expects you to leave with. You will be asked to justify this choice in your report ([3.5](#35-your-base-model-choice)). Picking one, discovering it how it does (or doesn't) do the job, and describing how you worked that out is a strong answer. Picking one at random and never noticing is not.
 
    ![Unsloth Studio Train screen: searching the Hugging Face model hub for lfm2.5-350m and picking a base model, with the training METHOD dropdown below it](images/select_model.gif)
 
    *Searching the model hub from the Train screen. Note that several LFM2.5 variants come back, including the encoder. Read before you click.*
-2. **Upload Dataset:** Feed your formatted data into Unsloth. Open the dataset configuration and make sure to map the target labels yourself.
+> [!CAUTION]
+> You must use the official model hosted by Unsloth or LiquidAI, downloaded directly from Hugging Face or Unsloth's repository. Using any other version of the model will result in a **score of zero**.
+3. **Upload Dataset:** Feed your formatted data into Unsloth. Open the dataset configuration and make sure to map the target labels yourself.
 
    ![Unsloth Studio dataset panel: uploading a local training file, viewing the loaded dataset, and the optional eval dataset slot](images/setting_up_data_set.gif)
 
    *Loading your formatted training data. Use **View dataset** to confirm the rows look the way you intended before you train on them.*
-3. **Choose Adaptation Method:** Select your adapter training configurations:
+4. **Choose Adaptation Method:** Select your adapter training configurations:
    * **LoRA (Low-Rank Adaptation)**
    * **QLoRA (Quantized Low-Rank Adaptation)**
    * **Full-Model Weights Training**
@@ -313,7 +315,7 @@ Once you have formatted your training data and verified its alignment with your 
 
    *Setting the training parameters. This is the other half of the assignment: your data on one side, these numbers on the other. Note the seed field, and keep it fixed so your runs are reproducible.*
 
-4. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export. Not need to apply quantization here FP16 is okay (the model is quite small).
+5. **Export as GGUF:** Once training completes, use Unsloth's export engine to export your model into a unified **GGUF format** (`.gguf`). Make sure that your trained weights are **fully merged** into the base model weights during the GGUF export. Not need to apply quantization here FP16 is okay (the model is quite small).
 
    ![Unsloth Studio training run reaching Step 30 of 30 and completing, exposing the Export to GGUF button](images/start_training.gif)
 
@@ -438,7 +440,7 @@ Once you have a benchmark score you want graded, upload these three files to Gra
 |------|-------------|
 | `prompter.py` | Must be identical to the `prompter.py` from the portal submission that produced the score. |
 | `token.txt` | The token file you received from the portal for that submission. |
-| `<NYUID>_report.md` | Must be identical to the '<NYUID>_report.md' from the portal submission that produced the score. |
+| `<NYUID>_report.md` | Must be identical to the `<NYUID>_report.md` from the portal submission that produced the score. |
 
 The token links your Gradescope submission to a specific benchmark result, so make sure the token and `prompter.py` come from the same portal submission.
 
