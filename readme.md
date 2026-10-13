@@ -473,8 +473,8 @@ Your model receives a numeric score from the Torch benchmarking run, computed th
 ## How Model Benchmarking Works
 
 * Once you upload your model to the portal, it will be placed in a queue for benchmarking. Benchmarking is performed on **Torch, NYU Tandon's supercomputer**, and is **not instantaneous**.
-* Benchmarking runs on a fixed schedule: **Monday, Wednesday, and Friday**. Uploads are accepted until **8:00 PM ET** on the day of benchmarking. Submissions received by the deadline will be placed in the queue.
-* You will receive your benchmarking score **the following day**. You can then choose to:
+* Benchmarking runs on a fixed schedule: Uploads are accepted until **6:00 PM ET** on the day of benchmarking. Submissions received by the deadline will be placed in the queue.
+* You will receive your benchmarking score **the following business day by early afternoon**. You can then choose to:
   * **Keep your score** by uploading the provided token to Gradescope (together with your writeup), or
   * **Submit a revised version** for another benchmarking attempt.
 * You are permitted a maximum of **5 benchmarking attempts**. Each attempt will generate a unique use token.
