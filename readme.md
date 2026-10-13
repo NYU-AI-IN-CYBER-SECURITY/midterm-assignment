@@ -455,7 +455,7 @@ Your midterm has two independently graded components.
 
 ### 1. The Report (Pass / Fail)
 
-The report is **not** scored against your model's benchmark number. A weak model with a sharp report passes. A strong model with a hollow report does not. To earn a **Pass**, your report must:
+The report is **not** scored against your model's benchmark number. A weak model with a sharp report passes. A strong model with a hollow report does not. There is no grading matrix, this is pass/fail and issued after the submission deadline. To earn a **Pass**, your report must:
 
 * Be submitted as `<NYUID>_report.md`, in Markdown. Any other format is a fail.
 * Stay within **600 to 2,000 words**.
